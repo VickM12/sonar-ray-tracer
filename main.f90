@@ -1,50 +1,72 @@
 program sonar_tracer
   use sound_speed
+  use intensity_grid_mod
   use ray_tracer
+  use submarine_mod
   implicit none
 
- ! --- Profile Parameters ---
-  integer, parameter :: N_DEPTHS = 500
-  real(8) :: z, dz, c
-  real(8), parameter :: Z_MAX = 5000.0d0 ! ocean floor (m)
+  ! Ray parameters
+  real(8), parameter :: DS         = 50.0d0
+  integer, parameter :: N_STEPS    = 30000
+  integer, parameter :: N_RAYS     = 31
+  real(8), parameter :: ANGLE_MIN  = -15.0d0
+  real(8), parameter :: ANGLE_MAX  =  15.0d0
 
-! --- Ray Parameters ---
-  real(8),  parameter :: Z_SOURCE  = 1300.0d0  ! source depth (m) — on SOFAR axis
-  real(8),  parameter :: DS        = 50.0d0    ! arc-length step (m)
-  integer,  parameter :: N_STEPS   = 20000     ! steps per ray
-  integer,  parameter :: N_RAYS    = 15        ! number of rays in fan
-  real(8),  parameter :: ANGLE_MIN = -15.0d0   ! degrees from horizontal
-  real(8),  parameter :: ANGLE_MAX =  15.0d0
-  real(8)             :: angle, dangle
-  integer :: i
+  ! Simulation parameters
+  integer, parameter :: N_FRAMES   = 30
+  real(8), parameter :: DT         = 600.0d0   ! 10 minutes per frame
 
-! --- Write Sound Profile ---
-  dz = Z_MAX / real(N_DEPTHS - 1, 8)
-  ! Write profile to csv for plotting
-  open(unit=10, file='sound_speed_profile.csv', status='replace')
-  write(10, '(A)') 'depth_m,speed_ms'
+  type(submarine) :: sub
+  character(64)   :: filename
+  integer         :: frame, track_unit, i
+  real(8)         :: t
 
-  do i = 1, N_DEPTHS
-    z = real(i - 1, 8) *dz
-    c = munk_profile(z)
-    write(10, '(F10.2, A, F10.4)') z, ',', c
+  ! Sound speed profile — write once
+  call write_sound_speed_profile()
+
+  ! Initial sub state
+  sub%x       = 10000.0d0    ! start 10km downrange
+  sub%z       = 300.0d0      ! 300m depth — below thermocline
+  sub%heading = 0.0d0        ! heading directly away from source
+  sub%speed   = 10.0d0       ! 10 knots
+
+  ! Sub track CSV
+  open(newunit=track_unit, file='sub_track.csv', status='replace')
+  write(track_unit, '(A)') 'time_s,range_m,depth_m'
+
+  t = 0.0d0
+  do frame = 1, N_FRAMES
+    write(*,'(A,I3,A,I3)') 'Computing frame ', frame, ' of ', N_FRAMES
+
+    call clear_grid()
+    call trace_fan(sub%x, sub%z, DS, N_STEPS, N_RAYS, ANGLE_MIN, ANGLE_MAX)
+
+    write(filename, '(A,I3.3,A)') 'frame_', frame, '.bin'
+    call write_grid(trim(filename))
+    call write_sub_position(sub%x, sub%z, t, track_unit)
+
+    call update_sub(sub, DT)
+    t = t + DT
   end do
 
-  close(10)
-  write(*,*) 'Profile written to sound_speed_profile.csv'
+  close(track_unit)
+  write(*,*) 'Done. Run plot_czmap.py to animate.'
 
+contains
 
-! --- Trace Ray fan ---
-  dangle = (ANGLE_MAX - ANGLE_MIN) / real(N_RAYS - 1, 8)
-  open(unit=20, file='ray_paths.csv', status='replace')
-  write(20, '(A)') 'range_m,depth_m,angle_deg'
+  subroutine write_sound_speed_profile()
+    integer, parameter :: N_DEPTHS = 500
+    real(8) :: z, dz
+    integer :: i, u
 
-  do i = 1, N_RAYS
-    angle = ANGLE_MIN + real(i -1, 8) * dangle
-    call trace_ray(angle, Z_SOURCE, DS, N_STEPS, Z_MAX, 20)
-  end do
+    dz = Z_MAX / real(N_DEPTHS - 1, 8)
+    open(newunit=u, file='sound_speed_profile.csv', status='replace')
+    write(u, '(A)') 'depth_m,speed_ms'
+    do i = 1, N_DEPTHS
+      z = real(i - 1, 8) * dz
+      write(u, '(F10.2,A,F10.4)') z, ',', munk_profile(z)
+    end do
+    close(u)
+  end subroutine write_sound_speed_profile
 
-  close(20)
-  write(*,*) 'Ray paths written to ray_paths.csv'
-  
 end program sonar_tracer
