@@ -30,7 +30,7 @@ ax_sp.grid(True, alpha=0.2)
 extent = [0, R_MAX / 1000, Z_MAX, 0]   # range in km, depth positive down
 
 def load_frame(n):
-    data = np.fromfile(f'frame_{n+1:03d}.bin', dtype=np.float64)
+    data = np.fromfile(f'frames/frame_{n+1:03d}.bin', dtype=np.float64)
     grid = data.reshape((NR, NZ)).T
     grid = gaussian_filter(grid, sigma=2.0)
     return grid

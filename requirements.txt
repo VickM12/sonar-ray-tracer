@@ -1,4 +1,7 @@
-pandas
-matplotlib
 numpy
+matplotlib
+pandas
 scipy
+dash
+plotly
+pyvista
