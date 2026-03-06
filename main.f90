@@ -7,10 +7,10 @@ program sonar_tracer
 
   ! Ray parameters
   real(8), parameter :: DS         = 50.0d0
-  integer, parameter :: N_STEPS    = 30000
-  integer, parameter :: N_RAYS     = 31
-  real(8), parameter :: ANGLE_MIN  = -15.0d0
-  real(8), parameter :: ANGLE_MAX  =  15.0d0
+  integer, parameter :: N_STEPS    = 40000
+  integer, parameter :: N_RAYS     = 101
+  real(8), parameter :: ANGLE_MIN  = -20.0d0
+  real(8), parameter :: ANGLE_MAX  =  20.0d0
 
   ! Simulation parameters
   integer, parameter :: N_FRAMES   = 30

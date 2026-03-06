@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pandas as pd
 from matplotlib.colors import LogNorm
+from scipy.ndimage import gaussian_filter
 
 NR, NZ       = 1000, 500
 R_MAX, Z_MAX = 1000e3, 5000.0
@@ -30,7 +31,9 @@ extent = [0, R_MAX / 1000, Z_MAX, 0]   # range in km, depth positive down
 
 def load_frame(n):
     data = np.fromfile(f'frame_{n+1:03d}.bin', dtype=np.float64)
-    return data.reshape((NR, NZ)).T     # transpose: rows=depth, cols=range
+    grid = data.reshape((NR, NZ)).T
+    grid = gaussian_filter(grid, sigma=2.0)
+    return grid
 
 first = load_frame(0)
 first_plot = np.where(first > 0, first, np.nan)
