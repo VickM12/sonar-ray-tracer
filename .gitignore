@@ -1,15 +1,26 @@
-.env
-.env.local
-.pycache
-.bin
-._pycache
-.venv
-.vscode
+# Fortran compiled objects and binaries
+*.o
+*.mod
+*.a
+sonar
+
+# Build output
+*.exe
+
+# Fortran editor artifacts
+*.bak
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Data output files (generated, not source)
+*.csv
+*.png
+
+# OS
 .DS_Store
-.idea
-.pytest_cache
-.ruff_cache
-.mypy_cache
-.pytest_cache
-.ruff_cache
-.mypy_cache
+Thumbs.db

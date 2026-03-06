@@ -22,12 +22,12 @@ contains
 
   ! Gradient dc/dz - needed by the ray tracer
   ! Computed analytically from the munk formula
-  pure funciton munk_gradient(z) result(dcdz)
+  pure function munk_gradient(z) result(dcdz)
     real(8), intent(in) :: z
     real(8)             :: dcdz, eta
 
     eta = 2.0d0 * (z - Z_MIN) / B
-    dcdz = C0 * EPS * (2.0d0 / B) * (1.0d0 - exp(-epa))
+    dcdz = C0 * EPS * (2.0d0 / B) * (1.0d0 - exp(-eta))
   end function munk_gradient
 
 end module sound_speed 
